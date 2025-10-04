@@ -1,10 +1,40 @@
-import React, { useState } from 'react'
-import { roomsDummyData } from '../../assets/assets'
+import React, { useEffect, useState } from 'react'
 import Title from '../../components/Title'
+import { useAppContext } from '../../context/AppContext'
+import toast from 'react-hot-toast'
 
 const ListRoom = () => {
 
-  const [rooms, setRooms] = useState(roomsDummyData)
+  const [rooms, setRooms] = useState([])
+  const {axios, getToken, user} = useAppContext()
+
+  // Fetch rooms for hotel owner
+  const fetchRooms = async () => {
+    try {
+      const data = await axios.get('/api/rooms/owner', {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`
+          
+        }
+      })
+      if (data.success) {
+        setRooms(data.rooms)
+      }
+      else{
+        toast.error(data.message)
+        setRooms([])
+      }
+    } catch (error) {
+        toast.error(error.message)
+        setRooms([])
+      
+    }
+  }
+  useEffect(()=>{
+    if (user) {
+      fetchRooms()
+    }
+  },[user])
   return (
     <div>
       <Title align='left' font='outfit' title='Room Listings' subTitle='View, edit, or manage all listed rooms. Keep the information up-to-date to provide the best experience for users.'/>
